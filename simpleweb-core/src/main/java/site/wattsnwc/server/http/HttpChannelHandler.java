@@ -9,6 +9,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * http channel
+ *
  * @author watts
  */
 public class HttpChannelHandler extends ChannelInitializer<Channel> {

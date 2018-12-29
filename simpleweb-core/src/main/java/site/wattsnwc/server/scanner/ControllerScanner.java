@@ -16,10 +16,12 @@ import java.util.stream.Stream;
  * @author watts
  */
 public class ControllerScanner {
-    private ControllerScanner(){}
+    private ControllerScanner() {
+    }
+
     private static final Set<Object> CONTROLLERS = new HashSet<>(16);
 
-    private static final ConcurrentHashMap<String,Method> MAPPINGS = new ConcurrentHashMap<>(128);
+    private static final ConcurrentHashMap<String, Method> MAPPINGS = new ConcurrentHashMap<>(128);
 
     public static void scanner() {
         Reflections reflections = new Reflections("site.wattsnwc.controller");
@@ -27,18 +29,18 @@ public class ControllerScanner {
         CONTROLLERS.addAll(classesList);
         classesList.forEach(aClass -> {
             RequestMapping classMapping = aClass.getAnnotation(RequestMapping.class);
-            String classUrl = classMapping==null?"":classMapping.value();
+            String classUrl = classMapping == null ? "" : classMapping.value();
             Stream.of(aClass.getMethods()).forEach(method -> {
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-                String methodUrl = requestMapping==null?"":requestMapping.value();
-                if(requestMapping!=null){
-                    MAPPINGS.put(classUrl+methodUrl,method);
+                String methodUrl = requestMapping == null ? "" : requestMapping.value();
+                if (requestMapping != null) {
+                    MAPPINGS.put(classUrl + methodUrl, method);
                 }
             });
         });
     }
 
-    public static Method getMethod(String url){
+    public static Method getMethod(String url) {
         return MAPPINGS.get(url);
     }
 }

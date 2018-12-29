@@ -8,11 +8,11 @@ import io.netty.handler.codec.http.FullHttpRequest;
  * @author watts
  */
 public class HttpRequest implements Request {
-    String method ;
+    String method;
 
-    String url ;
+    String url;
 
-    public static HttpRequest build(FullHttpRequest request){
+    public static HttpRequest build(FullHttpRequest request) {
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.method = request.method().name();
         httpRequest.url = request.uri();

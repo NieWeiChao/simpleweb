@@ -13,11 +13,13 @@ import site.wattsnwc.server.scanner.ControllerScanner;
 
 /**
  * netty服务
+ *
  * @author watts
  */
 public class NettyBootstrap {
 
-    private NettyBootstrap(){}
+    private NettyBootstrap() {
+    }
 
     private static Logger logger = LoggerFactory.getLogger(NettyBootstrap.class);
     private static ChannelFuture channelFuture = null;
@@ -33,11 +35,11 @@ public class NettyBootstrap {
 
     private static void start() throws InterruptedException {
         ServerBootstrap bootstrap = new ServerBootstrap()
-                .group(bossGroup,workerGroup)
+                .group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new HttpChannelHandler());
-        channelFuture =  bootstrap.bind(ServerConfig.INSTANCE.getPort()).sync();
-        if(channelFuture.isSuccess()){
+        channelFuture = bootstrap.bind(ServerConfig.INSTANCE.getPort()).sync();
+        if (channelFuture.isSuccess()) {
             logger.info("server is start !");
         }
     }
@@ -45,13 +47,14 @@ public class NettyBootstrap {
     private static void join() throws InterruptedException {
         channelFuture.channel().closeFuture().sync();
     }
-    private static void shutDownHook(){
+
+    private static void shutDownHook() {
         NettyShutDownHook shutDownHook = new NettyShutDownHook();
         shutDownHook.setName("SHUT_DOWN_THREAD");
         Runtime.getRuntime().addShutdownHook(shutDownHook);
     }
 
-    static class NettyShutDownHook extends Thread{
+    static class NettyShutDownHook extends Thread {
         @Override public void run() {
             logger.info("server is starting stop...");
 

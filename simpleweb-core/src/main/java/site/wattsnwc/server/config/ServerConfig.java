@@ -6,7 +6,7 @@ package site.wattsnwc.server.config;
  * @author watts
  */
 public final class ServerConfig {
-    private ServerConfig(){
+    private ServerConfig() {
     }
 
     public static final ServerConfig INSTANCE = new ServerConfig();

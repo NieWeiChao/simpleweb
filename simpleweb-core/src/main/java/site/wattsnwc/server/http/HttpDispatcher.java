@@ -16,10 +16,15 @@ import org.slf4j.LoggerFactory;
 import site.wattsnwc.server.body.request.HttpRequest;
 import site.wattsnwc.server.body.response.HttpResponse;
 import site.wattsnwc.server.context.Context;
+import site.wattsnwc.server.exception.NotFoundException;
 import site.wattsnwc.server.scanner.ControllerScanner;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * 请求处理类
@@ -33,25 +38,24 @@ public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest>
         HttpMethod method = request.method();
         HttpRequest httpRequest = HttpRequest.build(request);
         HttpResponse httpResponse = HttpResponse.build();
-        Context.setContext(new Context(httpRequest,httpResponse));
-        try{
-            //解析請求
-            if(HttpMethod.POST == method){
-                resolvePost(request);
-            }else if(HttpMethod.GET == method){
-                resolveGet(request);
-            }
+        Context.setContext(new Context(httpRequest, httpResponse));
+        try {
             //查找映射方法
-            Method doMethod = ControllerScanner.getMethod(request.uri());
-            if(doMethod == null){
-                throw new NoSuchMethodException();
+            Method doMethod = ControllerScanner.getMethod(request.uri().split("\\?")[0]);
+            if (doMethod == null) {
+                throw new NotFoundException("404","not found !");
             }
-            doMethod.invoke(doMethod.getDeclaringClass().newInstance());
-            buildResponse(ctx);
-        }catch (Exception e){
-            Context.getContext().response().setHttpContent("500 error!");
-        }
-        finally {
+            List<Object> args = new ArrayList<>(4);
+            //解析請求
+            if (HttpMethod.POST == method) {
+                resolvePost(request);
+            } else if (HttpMethod.GET == method) {
+                resolveGet(request,args,doMethod);
+            }
+            doMethod.invoke(doMethod.getDeclaringClass().newInstance(),args);
+        } catch (Exception e) {
+            Context.getContext().response().setHttpContent(e.getMessage());
+        } finally {
             buildResponse(ctx);
             Context.removeContext();
         }
@@ -60,6 +64,7 @@ public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest>
 
     /**
      * 构建响应
+     *
      * @param ctx
      */
     private void buildResponse(ChannelHandlerContext ctx) {
@@ -71,10 +76,27 @@ public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest>
         ctx.writeAndFlush(response);
     }
 
-    private void resolveGet(FullHttpRequest request){
+    private void resolveGet(FullHttpRequest request,List<Object> args,Method doMethod) {
         String uri = request.uri();
+        String[] paramsUri = uri.split("\\?");
+        if(paramsUri.length>1){
+            Stream<Parameter> paramsStream = Stream.of(doMethod.getParameters());
+            String params = paramsUri[1];
+            String[] param = params.split("=");
+            String paramName = param[0];
+            String paramValue = param[1];
+            paramsStream.forEach(parameter -> {
+                if(parameter.getName().equals(paramName)){
+                    args.add(paramValue);
+                }else if(parameter.getType() == Context.class){
+                    args.add(Context.getContext());
+                }
+            });
+        }
+
     }
-    private void resolvePost(FullHttpRequest request){
+
+    private void resolvePost(FullHttpRequest request) {
         ByteBuf content = request.content();
         byte[] reqContent = new byte[content.readableBytes()];
         content.readBytes(reqContent);

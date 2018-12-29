@@ -12,6 +12,7 @@
     <modules>
 
         <module>simpleweb-core</module>
+        <module>simpleweb-sample</module>
     </modules>
 
     <name>simpleweb</name>

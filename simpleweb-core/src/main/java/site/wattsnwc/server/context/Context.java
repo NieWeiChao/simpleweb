@@ -15,25 +15,28 @@ public final class Context {
     private Response response;
 
 
-    public Context(Request request,Response response){
+    public Context(Request request, Response response) {
         this.request = request;
         this.response = response;
     }
 
-    public Request request(){
-        return Context.getContext().request ;
+    public Request request() {
+        return Context.getContext().request;
     }
 
-    public Response response(){
-        return Context.getContext().response ;
+    public Response response() {
+        return Context.getContext().response;
     }
-    public static void removeContext(){
+
+    public static void removeContext() {
         ContextThreadLocalHodler.removeContext();
     }
-    public static void setContext(Context context){
+
+    public static void setContext(Context context) {
         ContextThreadLocalHodler.setContext(context);
     }
-    public static Context getContext(){
+
+    public static Context getContext() {
         return ContextThreadLocalHodler.getContext();
     }
 

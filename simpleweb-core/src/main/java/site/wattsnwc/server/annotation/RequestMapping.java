@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  *
  * @author watts
  */
-@Target({ElementType.METHOD,ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface RequestMapping {
