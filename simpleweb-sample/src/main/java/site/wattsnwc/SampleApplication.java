@@ -9,6 +9,6 @@ import site.wattsnwc.server.bootstrap.NettyBootstrap;
  */
 public class SampleApplication {
     public static void main(String[] args) throws Exception {
-        NettyBootstrap.startServer();
+        NettyBootstrap.startServer(18080);
     }
 }

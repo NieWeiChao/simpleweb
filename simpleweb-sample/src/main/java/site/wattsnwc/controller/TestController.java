@@ -2,6 +2,7 @@ package site.wattsnwc.controller;
 
 import site.wattsnwc.server.annotation.Controller;
 import site.wattsnwc.server.annotation.RequestMapping;
+import site.wattsnwc.server.annotation.RequestParam;
 import site.wattsnwc.server.context.Context;
 
 /**
@@ -12,18 +13,19 @@ import site.wattsnwc.server.context.Context;
 @Controller
 @RequestMapping("/test")
 public class TestController {
-    private int M1  = 1024 * 1024 ;
+
+    @RequestMapping("/one1/")
+    public void one1() {
+        Context.getContext().response().setHttpContent("test 聶偉超 content one");
+    }
+
     @RequestMapping("/one")
-    public void one(String p1){
-        System.out.println("p1::::::"+p1);
-        int s = M1;
-        System.out.println(s);
+    public void one(@RequestParam("p1") String p1) {
         Context.getContext().response().setHttpContent("test 聶偉超 content one");
     }
 
     @RequestMapping("/two")
-    public void two(String p2,Context context){
-        System.out.println("p2::::::"+p2);
+    public void two(String p2, Context context) {
         Context.getContext().response().setHttpContent("test 聶偉超 content two");
     }
 }

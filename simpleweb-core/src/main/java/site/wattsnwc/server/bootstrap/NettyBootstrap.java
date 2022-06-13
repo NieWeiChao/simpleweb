@@ -21,26 +21,31 @@ public class NettyBootstrap {
     private NettyBootstrap() {
     }
 
-    private static Logger logger = LoggerFactory.getLogger(NettyBootstrap.class);
+    private static final Logger logger = LoggerFactory.getLogger(NettyBootstrap.class);
     private static ChannelFuture channelFuture = null;
-    private static EventLoopGroup bossGroup = new NioEventLoopGroup();
-    private static EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private static final EventLoopGroup bossGroup = new NioEventLoopGroup();
+    private static final EventLoopGroup workerGroup = new NioEventLoopGroup();
 
     public static void startServer() throws Exception {
+        startServer(ServerConfig.INSTANCE.getPort());
+    }
+
+    public static void startServer(int port) throws Exception {
         ControllerScanner.scanner();
-        start();
+        start(port);
         join();
         shutDownHook();
     }
 
-    private static void start() throws InterruptedException {
+
+    private static void start(int port) throws InterruptedException {
         ServerBootstrap bootstrap = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new HttpChannelHandler());
-        channelFuture = bootstrap.bind(ServerConfig.INSTANCE.getPort()).sync();
+        channelFuture = bootstrap.bind(port).sync();
         if (channelFuture.isSuccess()) {
-            logger.info("server is start !");
+            logger.info("server is start , port is {} !", port);
         }
     }
 
@@ -55,12 +60,11 @@ public class NettyBootstrap {
     }
 
     static class NettyShutDownHook extends Thread {
-        @Override public void run() {
+        @Override
+        public void run() {
             logger.info("server is starting stop...");
-
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-
             logger.info("server is has been successfully stopped.");
         }
     }

@@ -4,15 +4,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import site.wattsnwc.server.annotation.RequestParam;
 import site.wattsnwc.server.body.request.HttpRequest;
 import site.wattsnwc.server.body.response.HttpResponse;
 import site.wattsnwc.server.context.Context;
@@ -32,34 +27,34 @@ import java.util.stream.Stream;
  * @author watts
  */
 public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest> {
+
     private static Logger logger = LoggerFactory.getLogger(HttpDispatcher.class);
 
-    @Override protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
         HttpMethod method = request.method();
         HttpRequest httpRequest = HttpRequest.build(request);
         HttpResponse httpResponse = HttpResponse.build();
         Context.setContext(new Context(httpRequest, httpResponse));
         try {
-            //查找映射方法
             Method doMethod = ControllerScanner.getMethod(request.uri().split("\\?")[0]);
             if (doMethod == null) {
-                throw new NotFoundException("404","not found !");
+                throw new NotFoundException("404", "not found !");
             }
             List<Object> args = new ArrayList<>(4);
-            //解析請求
             if (HttpMethod.POST == method) {
                 resolvePost(request);
             } else if (HttpMethod.GET == method) {
-                resolveGet(request,args,doMethod);
+                resolveGet(request, args, doMethod);
             }
-            doMethod.invoke(doMethod.getDeclaringClass().newInstance(),args);
+            doMethod.invoke(doMethod.getDeclaringClass().newInstance(), args.toArray(new Object[0]));
         } catch (Exception e) {
+            e.printStackTrace();
             Context.getContext().response().setHttpContent(e.getMessage());
         } finally {
             buildResponse(ctx);
             Context.removeContext();
         }
-
     }
 
     /**
@@ -76,19 +71,21 @@ public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest>
         ctx.writeAndFlush(response);
     }
 
-    private void resolveGet(FullHttpRequest request,List<Object> args,Method doMethod) {
+    private void resolveGet(FullHttpRequest request, List<Object> args, Method doMethod) {
         String uri = request.uri();
         String[] paramsUri = uri.split("\\?");
-        if(paramsUri.length>1){
+        if (paramsUri.length > 1) {
             Stream<Parameter> paramsStream = Stream.of(doMethod.getParameters());
             String params = paramsUri[1];
             String[] param = params.split("=");
             String paramName = param[0];
             String paramValue = param[1];
             paramsStream.forEach(parameter -> {
-                if(parameter.getName().equals(paramName)){
+                RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
+                if (requestParam.value().equals(paramName)) {
                     args.add(paramValue);
-                }else if(parameter.getType() == Context.class){
+                }
+                if (parameter.getType() == Context.class) {
                     args.add(Context.getContext());
                 }
             });
