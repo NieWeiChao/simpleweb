@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import site.wattsnwc.server.annotation.RequestParam;
 import site.wattsnwc.server.body.request.HttpRequest;
+import site.wattsnwc.server.body.request.Request;
 import site.wattsnwc.server.body.response.HttpResponse;
+import site.wattsnwc.server.body.response.Response;
 import site.wattsnwc.server.context.Context;
 import site.wattsnwc.server.exception.NotFoundException;
 import site.wattsnwc.server.scanner.ControllerScanner;
@@ -33,8 +35,8 @@ public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest>
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
         HttpMethod method = request.method();
-        HttpRequest httpRequest = HttpRequest.build(request);
-        HttpResponse httpResponse = HttpResponse.build();
+        Request httpRequest = HttpRequest.build(request);
+        Response httpResponse = HttpResponse.build();
         Context.setContext(new Context(httpRequest, httpResponse));
         try {
             Method doMethod = ControllerScanner.getMethod(request.uri().split("\\?")[0]);
@@ -68,6 +70,7 @@ public class HttpDispatcher extends SimpleChannelInboundHandler<FullHttpRequest>
         DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
         HttpHeaders headers = response.headers();
         headers.setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        headers.set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
         ctx.writeAndFlush(response);
     }
 

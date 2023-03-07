@@ -16,7 +16,7 @@ public class TestController {
 
     @RequestMapping("/one1/")
     public void one1() {
-        Context.getContext().response().setHttpContent("test 聶偉超 content one");
+        Context.getContext().response().setHttpContent("test 聂伟超 content one");
     }
 
     @RequestMapping("/one")
